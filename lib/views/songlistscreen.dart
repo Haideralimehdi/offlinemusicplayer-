@@ -12,6 +12,7 @@ import '../presentation layer/utils/apptheme.dart';
 import '../presentation layer/widget/miniplayerwidget.dart';
 import 'fullplayerscreen.dart';
 import 'playlistscreen.dart';
+import 'profilescreen.dart';
 
 class SongListScreen extends StatefulWidget {
   const SongListScreen({super.key});
@@ -149,6 +150,21 @@ class _SongListScreenState extends State<SongListScreen> {
               },
             ),
 
+            ListTile(
+              leading: Icon(Icons.person, color: Colors.black),
+              title: Text(
+                "Profile",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              onTap: () {
+                Get.back();
+                Get.to(() => const ProfileScreen());
+              },
+            ),
             const Divider(thickness: 1),
 
             /// ⚙ SETTINGS

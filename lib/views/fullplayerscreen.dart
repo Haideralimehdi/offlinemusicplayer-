@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import '../presentation layer/controller/playercontroller.dart';
+import '../presentation layer/utils/apptheme.dart';
+import 'playlistscreen.dart';
 
 class FullPlayerScreen extends StatelessWidget {
   const FullPlayerScreen({super.key});
@@ -17,20 +19,40 @@ class FullPlayerScreen extends StatelessWidget {
 
       // ✅ PROFESSIONAL APP BAR (Your Design Applied)
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              icon: Icon(Icons.menu),
+              color: AppTheme.icon,
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.keyboard_arrow_down, size: 32),
-          onPressed: () => Get.back(),
-        ),
-        title: const Text(
-          'MuzikFlow',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        centerTitle: true,
+        title: Text(
+          "MuzikFlow",
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.light_mode),
-            onPressed: () {},
+          GestureDetector(
+            onTap: () {
+              Get.to(() => PlaylistScreen());
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: Get.width * 0.06),
+              child: Icon(
+                color: AppTheme.icon,
+                Icons.playlist_add,
+                size: 28,
+              ),
+            ),
           ),
         ],
       ),
@@ -120,14 +142,12 @@ class FullPlayerScreen extends StatelessWidget {
                         const RoundSliderThumbShape(enabledThumbRadius: 7),
                   ),
                   child: Slider(
-                    value:
-                        controller.position.value.inSeconds.toDouble(),
+                    value: controller.position.value.inSeconds.toDouble(),
                     max: controller.duration.value.inSeconds == 0
                         ? 1
                         : controller.duration.value.inSeconds.toDouble(),
                     onChanged: (value) {
-                      controller
-                          .seek(Duration(seconds: value.toInt()));
+                      controller.seek(Duration(seconds: value.toInt()));
                     },
                     activeColor: Colors.white,
                     inactiveColor: Colors.grey.shade700,
@@ -136,20 +156,15 @@ class FullPlayerScreen extends StatelessWidget {
 
                 // ✅ TIME ROW
                 Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      _formatDuration(
-                          controller.position.value),
-                      style: const TextStyle(
-                          color: Colors.white70),
+                      _formatDuration(controller.position.value),
+                      style: const TextStyle(color: Colors.white70),
                     ),
                     Text(
-                      _formatDuration(
-                          controller.duration.value),
-                      style: const TextStyle(
-                          color: Colors.white70),
+                      _formatDuration(controller.duration.value),
+                      style: const TextStyle(color: Colors.white70),
                     ),
                   ],
                 ),
@@ -158,8 +173,7 @@ class FullPlayerScreen extends StatelessWidget {
 
                 // ✅ CONTROLS (Professional Spacing)
                 Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     IconButton(
                       iconSize: size.width * 0.11,
@@ -169,7 +183,6 @@ class FullPlayerScreen extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
-
                     Container(
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
@@ -182,8 +195,7 @@ class FullPlayerScreen extends StatelessWidget {
                       ),
                       child: IconButton(
                         iconSize: size.width * 0.19,
-                        onPressed:
-                            controller.togglePlayPause,
+                        onPressed: controller.togglePlayPause,
                         icon: Icon(
                           controller.isPlaying.value
                               ? Icons.pause_circle_filled
@@ -192,7 +204,6 @@ class FullPlayerScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     IconButton(
                       iconSize: size.width * 0.11,
                       onPressed: controller.playNext,
@@ -215,12 +226,9 @@ class FullPlayerScreen extends StatelessWidget {
 
   /// ✅ FORMAT mm:ss
   String _formatDuration(Duration d) {
-    String twoDigits(int n) =>
-        n.toString().padLeft(2, '0');
-    final minutes =
-        twoDigits(d.inMinutes.remainder(60));
-    final seconds =
-        twoDigits(d.inSeconds.remainder(60));
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(d.inMinutes.remainder(60));
+    final seconds = twoDigits(d.inSeconds.remainder(60));
     return '$minutes:$seconds';
   }
 }
