@@ -2,6 +2,8 @@
 
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:music_player2/presentation%20layer/widget/miniplayerwidget.dart';
@@ -9,7 +11,7 @@ import 'package:music_player2/views/playlistscreen.dart';
 import '../presentation layer/controller/audiocontroller.dart';
 import '../presentation layer/controller/playercontroller.dart';
 // import '../presentation layer/controller/themecontroller.dart';
-import '../presentation layer/controller/usercontroller.dart';
+import '../presentation layer/controller/profile_controller.dart';
 import '../presentation layer/utils/apptheme.dart';
 import '../presentation layer/widget/allsongswidget.dart';
 import '../presentation layer/widget/featuredcard.dart';
@@ -27,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final AudioController c = Get.put(AudioController());
     final playerController = Get.put(PlayerController());
-    final UserController userController = Get.put(UserController());
+    // final UserController userController = Get.put(UserController());
     // final PlaylistController playlistController = Get.put(PlaylistController());
     // final ThemeController themeController = Get.put(ThemeController());
     return Scaffold(
@@ -73,107 +75,118 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: Drawer(
         child: Column(
           children: [
-            /// 🔥 PROFILE HEADER
-            Obx(() {
-              final user = userController.user.value;
+            /// 🔥 PROFILE HEADER (FIREBASE)
+            StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser?.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                String userName = "Guest User";
 
-              return UserAccountsDrawerHeader(
-                decoration: BoxDecoration(
-                  gradient: AppTheme.backgroundGradient,
-                ),
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  final data = snapshot.data!.data() as Map<String, dynamic>;
+                  userName = data['name'] ?? "Guest User";
+                }
 
-                currentAccountPicture: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.white,
-                  backgroundImage:
-                      user != null ? FileImage(File(user.imagePath)) : null,
-                  child: user == null
-                      ? const Icon(Icons.person, size: 45, color: Colors.black)
-                      : null,
-                ),
+                return UserAccountsDrawerHeader(
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.backgroundGradient,
+                  ),
 
-                /// 👤 USER NAME (Bigger + Bold)
-                accountName: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    user?.name ?? "Guest User",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                      color: Colors.white,
+                  /// 👤 STATIC AVATAR
+                  currentAccountPicture: const CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.person,
+                      size: 45,
+                      color: Colors.black,
                     ),
                   ),
-                ),
 
-                /// 📧 OPTIONAL SUBTITLE
-                accountEmail: const Text(
-                  "Welcome back 👋",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.white70,
+                  /// USER NAME
+                  accountName: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      userName,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                ),
-              );
-            }),
+                  accountEmail: const Text(
+                    "Welcome back 👋",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white70,
+                    ),
+                  ),
+
+                  /// SUBTITLE
+                );
+              },
+            ),
 
             /// 🏠 HOME
             ListTile(
-              leading: const Icon(Icons.home, color: Colors.black),
-              title: const Text(
+              leading:  Icon(Icons.home, color: Colors.black),
+              title:  Text(
                 "Home",
                 style: TextStyle(
-                  color: Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               onTap: () {
-                Get.back();
+                // Get.back();
+                Get.to(() =>  HomeScreen());
               },
             ),
 
             /// 🎵 PLAYLISTS
             ListTile(
-              leading: const Icon(Icons.playlist_play, color: Colors.black),
-              title: const Text(
+              leading:  Icon(Icons.playlist_play, color: Colors.black),
+              title:  Text(
                 "Playlists",
                 style: TextStyle(
-                  color: Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               onTap: () {
-                Get.back();
-                Get.to(() => const PlaylistScreen());
+                // Get.back();
+                Get.to(() =>  PlaylistScreen());
               },
             ),
 
+            /// 👤 PROFILE
             ListTile(
-              leading: Icon(Icons.person, color: Colors.black),
-              title: Text(
+              leading:  Icon(Icons.person, color: Colors.black),
+              title:  Text(
                 "Profile",
                 style: TextStyle(
-                  color: Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               onTap: () {
-                Get.back();
-                Get.to(() => const ProfileScreen());
+                // Get.back();
+                Get.to(() =>  ProfileScreen());
               },
             ),
+
             const Divider(thickness: 1),
 
             /// ⚙ SETTINGS
             ListTile(
-              leading: const Icon(Icons.settings, color: Colors.black),
-              title: const Text(
+              leading:  Icon(Icons.settings, color: Colors.black),
+              title:  Text(
                 "Settings",
                 style: TextStyle(
-                  color: Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),

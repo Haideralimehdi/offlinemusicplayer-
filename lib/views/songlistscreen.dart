@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -7,10 +9,11 @@ import '../presentation layer/controller/playlist_controller.dart';
 import '../presentation layer/controller/audiocontroller.dart';
 import '../presentation layer/controller/playercontroller.dart';
 import '../presentation layer/controller/songlistscreencontroller.dart';
-import '../presentation layer/controller/usercontroller.dart';
+import '../presentation layer/controller/profile_controller.dart';
 import '../presentation layer/utils/apptheme.dart';
 import '../presentation layer/widget/miniplayerwidget.dart';
 import 'fullplayerscreen.dart';
+import 'homepage.dart';
 import 'playlistscreen.dart';
 import 'profilescreen.dart';
 
@@ -27,7 +30,7 @@ class _SongListScreenState extends State<SongListScreen> {
     final AudioController controller = Get.find<AudioController>();
     final PlayerController playerController = Get.find<PlayerController>();
     final SongListController songListController = Get.put(SongListController());
-    final UserController userController = Get.put(UserController());
+    // final UserController userController = Get.put(UserController());
 
     // final playlistController = Get.put(PlaylistController());
     final size = MediaQuery.of(context).size;
@@ -71,118 +74,130 @@ class _SongListScreenState extends State<SongListScreen> {
         ],
       ),
       drawer: Drawer(
-        child: Column(
-          children: [
-            /// 🔥 PROFILE HEADER
-            Obx(() {
-              final user = userController.user.value;
+  child: Column(
+    children: [
+      /// 🔥 PROFILE HEADER (FIREBASE)
+      StreamBuilder(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser?.uid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          String userName = "Guest User";
 
-              return UserAccountsDrawerHeader(
-                decoration: BoxDecoration(
-                  gradient: AppTheme.backgroundGradient,
-                ),
+          if (snapshot.hasData && snapshot.data!.exists) {
+            final data = snapshot.data!.data() as Map<String, dynamic>;
+            userName = data['name'] ?? "Guest User";
+          }
 
-                currentAccountPicture: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.white,
-                  backgroundImage:
-                      user != null ? FileImage(File(user.imagePath)) : null,
-                  child: user == null
-                      ? const Icon(Icons.person, size: 45, color: Colors.black)
-                      : null,
-                ),
-
-                /// 👤 USER NAME (Bigger + Bold)
-                accountName: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    user?.name ?? "Guest User",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-
-                /// 📧 OPTIONAL SUBTITLE
-                accountEmail: const Text(
-                  "Welcome back 👋",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.white70,
-                  ),
-                ),
-              );
-            }),
-
-            /// 🏠 HOME
-            ListTile(
-              leading: const Icon(Icons.home, color: Colors.black),
-              title: const Text(
-                "Home",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              onTap: () {
-                Get.back();
-              },
+          return UserAccountsDrawerHeader(
+            decoration: BoxDecoration(
+              gradient: AppTheme.backgroundGradient,
             ),
 
-            /// 🎵 PLAYLISTS
-            ListTile(
-              leading: const Icon(Icons.playlist_play, color: Colors.black),
-              title: const Text(
-                "Playlists",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+            /// 👤 STATIC AVATAR
+            currentAccountPicture: const CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.white,
+              child: Icon(
+                Icons.person,
+                size: 45,
+                color: Colors.black,
               ),
-              onTap: () {
-                Get.back();
-                Get.to(() => const PlaylistScreen());
-              },
             ),
 
-            ListTile(
-              leading: Icon(Icons.person, color: Colors.black),
-              title: Text(
-                "Profile",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+            /// USER NAME
+            accountName: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                userName,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                  color: Colors.white,
                 ),
               ),
-              onTap: () {
-                Get.back();
-                Get.to(() => const ProfileScreen());
-              },
             ),
-            const Divider(thickness: 1),
 
-            /// ⚙ SETTINGS
-            ListTile(
-              leading: const Icon(Icons.settings, color: Colors.black),
-              title: const Text(
-                "Settings",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+            /// SUBTITLE
+            accountEmail: const Text(
+              "Welcome back 👋",
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.white70,
               ),
-              onTap: () {},
             ),
-          ],
-        ),
+
+          );
+        },
       ),
+
+      /// 🏠 HOME
+      ListTile(
+        leading:  Icon(Icons.home, color: Colors.black),
+        title:  Text(
+          "Home",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        onTap: () {
+          Get.to(() =>  HomeScreen());
+        },
+      ),
+
+      /// 🎵 PLAYLISTS
+      ListTile(
+        leading:  Icon(Icons.playlist_play, color: Colors.black),
+        title:  Text(
+          "Playlists",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        onTap: () {
+          // Get.back();
+          Get.to(() =>  PlaylistScreen());
+        },
+      ),
+
+      /// 👤 PROFILE
+      ListTile(
+        leading:  Icon(Icons.person, color: Colors.black),
+        title:  Text(
+          "Profile",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        onTap: () {
+          // Get.back();
+          Get.to(() =>  ProfileScreen());
+        },
+      ),
+
+      const Divider(thickness: 1),
+
+      /// ⚙ SETTINGS
+      ListTile(
+        leading: const Icon(Icons.settings, color: Colors.black),
+        title: const Text(
+          "Settings",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        onTap: () {},
+      ),
+    ],
+  ),
+),
+
       bottomNavigationBar: MiniPlayer(),
       body: Obx(() {
         if (controller.isLoading.value) {

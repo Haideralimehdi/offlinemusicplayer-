@@ -1,20 +1,25 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-// ignore: unnecessary_import
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+import 'firebase_options.dart';
 import 'presentation layer/controller/audiocontroller.dart';
 import 'presentation layer/controller/playercontroller.dart';
 import 'presentation layer/controller/playlist_controller.dart';
-import 'presentation layer/controller/usercontroller.dart';
+import 'presentation layer/controller/profile_controller.dart';
 import 'presentation layer/models/playlist_model.dart';
 import 'presentation layer/models/user_model.dart';
 import 'views/homepage.dart';
-import 'views/preloaderscreen.dart';
+import 'views/login_screen.dart';
+import 'views/register_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+);
   await Hive.initFlutter();
   Hive.registerAdapter(PlaylistModelAdapter());
   await Hive.openBox<PlaylistModel>('playlists');
@@ -26,6 +31,7 @@ void main() async {
   Get.put(PlayerController());
   Get.put(PlaylistController()); // <-- inject here
 
+
   runApp(const MyApp());
 }
 
@@ -35,7 +41,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final UserController userController = Get.put(UserController());
+    // final UserController userController = Get.put(UserController());
+    final user = FirebaseAuth.instance.currentUser;
 
     Get.put(AudioController());
     return GetMaterialApp(
@@ -60,7 +67,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: userController.isLoggedIn ? const HomeScreen() : PreloaderScreen(),
+      // home: userController.isLoggedIn ? const HomeScreen() : PreloaderScreen(),
+      home: user != null ? const HomeScreen() : RegisterScreen(),
+      // home: RegisterScreen(),
     );
   }
 }
